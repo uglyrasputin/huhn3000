@@ -46,7 +46,7 @@ jobs:
               try:
                   print("Versuche:", model_name)
                   response = client.models.generate_content(model=model_name, contents=prompt)
-                  lines = [l.strip()[:34] for l in response.text.splitlines() if l.strip()]
+                  lines = [l.strip()[:62] for l in response.text.splitlines() if l.strip()]
                   if len(lines) >= 4:
                       print("Erfolg mit:", model_name)
                       break
