@@ -18,25 +18,32 @@ jobs:
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
-          CLEAN_KEY=$(echo -n "$GEMINI_API_KEY" | tr -d '[:space:]')
-          curl -sS -X POST "https://googleapis.com{CLEAN_KEY}" -H "Content-Type: application/json" -d '{"contents":[{"parts":[{"text":"Schreibe genau 8 kurze, lustige, kreative Gedanken oder Sprueche aus Sicht von Huehnern im Huehnerstall auf Deutsch. Maximal 32 Zeichen pro Zeile! Nur ue, ae, oe, ss verwenden (keine Umlaute, keine Emojis, keine Nummerierung, nur die 8 Zeilen)."}]}]}' -o response.json
-
           python3 - << 'EOF'
-          import json
-          with open("response.json", "r", encoding="utf-8") as f:
-              res = json.load(f)
-          if "candidates" not in res:
-              print("API Fehler:", res)
-              raise SystemExit(1)
+          import os, json, urllib.request
+
+          host = "generativelanguage." + "googleapis.com"
+          path = "/v1beta/models/gemini-2.5-flash:generateContent"
+          url = "https://" + host + path
+          key = os.environ["GEMINI_API_KEY"].strip()
+
+          prompt = "Schreibe genau 8 kurze, lustige, kreative Gedanken oder Sprueche aus Sicht von Huehnern im Huehnerstall auf Deutsch. Maximal 32 Zeichen pro Zeile! Nur ue, ae, oe, ss verwenden (keine Umlaute, keine Emojis, keine Nummerierung, nur die 8 Zeilen)."
+          payload = json.dumps({"contents": [{"parts": [{"text": prompt}]}]}).encode("utf-8")
+
+          req = urllib.request.Request(url, data=payload, method="POST")
+          req.add_header("Content-Type", "application/json")
+          req.add_header("x-goog-api-key", key)
+
+          with urllib.request.urlopen(req) as resp:
+              res = json.loads(resp.read().decode("utf-8"))
+
           cand = res.get("candidates").pop(0)
           part = cand.get("content").get("parts").pop(0)
           text = part.get("text").strip()
           lines = [l.strip()[:34] for l in text.splitlines() if l.strip()]
+
           with open("sprueche.txt", "w", encoding="utf-8") as f:
               f.write("\n".join(lines[:8]) + "\n")
           EOF
-
-          rm -f response.json
 
       - name: Save sprueche.txt to repo
         run: |
