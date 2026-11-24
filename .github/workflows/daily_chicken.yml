@@ -22,7 +22,7 @@ jobs:
           import os, json, urllib.request
 
           host = "generativelanguage." + "googleapis.com"
-          path = "/v1beta/models/gemini-2.5-flash:generateContent"
+          path = "/v1beta/models/gemini-2.0-flash:generateContent"
           url = "https://" + host + path
           key = os.environ["GEMINI_API_KEY"].strip()
 
