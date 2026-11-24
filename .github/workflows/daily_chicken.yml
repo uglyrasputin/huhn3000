@@ -20,18 +20,35 @@ jobs:
         run: |
           pip install -q google-genai
           python3 - << 'EOF'
-          import os
+          import os, time
           from google import genai
 
           client = genai.Client(api_key=os.environ["GEMINI_API_KEY"].strip())
           prompt = "Schreibe genau 8 kurze, lustige, kreative Gedanken oder Sprueche aus Sicht von Huehnern mit schwarzem Humor im Huehnerstall auf Deutsch. Maximal 32 Zeichen pro Zeile! Nur ue, ae, oe, ss verwenden (keine Umlaute, keine Emojis, keine Nummerierung, nur die 8 Zeilen)."
-           try:
-              response = client.models.generate_content(model="gemini-3.8-flash", contents=prompt)
-          except Exception:
-              response = client.models.generate_content(model="gemini-3.8-flash-lite", contents=prompt)
 
+          lines = []
+          for model_name in ["gemini-3.8-flash", "gemini-3.8-flash-lite"]:
+              try:
+                  response = client.models.generate_content(model=model_name, contents=prompt)
+                  lines = [l.strip()[:34] for l in response.text.splitlines() if l.strip()]
+                  if len(lines) >= 4:
+                      break
+              except Exception as e:
+                  print(f"Warnung bei {model_name}: {e}")
+                  time.sleep(3)
 
-          lines = [l.strip()[:34] for l in response.text.splitlines() if l.strip()]
+          if len(lines) < 4:
+              lines = [
+                  "Bock, bock! Alles ruhig hier...",
+                  "Wo bleibt mein Koerner-Fruehstueck?",
+                  "Ich bewache heute das Nest!",
+                  "Frische Eier im Anmarsch!",
+                  "Wer hat den Fuchs gesehen?",
+                  "Gack! Sonne oder Stall?",
+                  "Alle auf die Schlafstange!",
+                  "Heute legen wir Weltrekord!"
+              ]
+
           with open("sprueche.txt", "w", encoding="utf-8") as f:
               f.write("\n".join(lines[:8]) + "\n")
           EOF
