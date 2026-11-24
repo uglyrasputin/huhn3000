@@ -18,18 +18,21 @@ jobs:
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
-          curl -s -X POST "https://googleapis.com" \
+          CLEAN_KEY=$(echo -n "$GEMINI_API_KEY" | tr -d '[:space:]')
+          curl -sS -w "\nHTTP_STATUS:%{http_code}\n" -X POST \
+            "https://googleapis.com" \
             -H "Content-Type: application/json" \
-            -H "x-goog-api-key: $GEMINI_API_KEY" \
+            -H "x-goog-api-key: $CLEAN_KEY" \
             -d '{"contents":[{"parts":[{"text":"Schreibe genau 8 kurze, lustige, kreative Gedanken oder Sprueche aus Sicht von Huehnern im Huehnerstall auf Deutsch. Maximal 32 Zeichen pro Zeile! Nur ue, ae, oe, ss verwenden (keine Umlaute, keine Emojis, keine Nummerierung, nur die 8 Zeilen)."}]}]}' \
             -o response.json
+
+          cat response.json
 
           python3 - << 'EOF'
           import json
           with open("response.json", "r", encoding="utf-8") as f:
               res = json.load(f)
           if "candidates" not in res:
-              print("API Antwort:", res)
               raise SystemExit(1)
           cand = res.get("candidates").pop(0)
           part = cand.get("content").get("parts").pop(0)
