@@ -18,22 +18,28 @@ jobs:
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
-          python3 -c '
-          import os, json, urllib.request
-          key = os.environ["GEMINI_API_KEY"]
-          url = f"https://googleapis.com{key}"
-          prompt = "Schreibe genau 8 kurze, lustige, kreative Gedanken oder Sprueche aus Sicht von Huehnern im Huehnerstall auf Deutsch. Maximal 32 Zeichen pro Zeile! Nur ue, ae, oe, ss verwenden (keine Umlaute, keine Emojis, keine Nummerierung, nur die 8 Zeilen)."
-          data = json.dumps({"contents": [{"parts": [{"text": prompt}]}]}).encode("utf-8")
-          req = urllib.request.Request(url, data=data, headers={"Content-Type": "application/json"})
-          with urllib.request.urlopen(req) as resp:
-              res = json.loads(resp.read().decode())
-              cand = res.get("candidates").pop(0)
-              part = cand.get("content").get("parts").pop(0)
-              text = part.get("text").strip()
-              lines = [l.strip()[:34] for l in text.splitlines() if l.strip()]
-              with open("sprueche.txt", "w", encoding="utf-8") as f:
-                  f.write("\n".join(lines[:8]) + "\n")
-          '
+          curl -s -X POST "https://googleapis.com" \
+            -H "Content-Type: application/json" \
+            -H "x-goog-api-key: $GEMINI_API_KEY" \
+            -d '{"contents":[{"parts":[{"text":"Schreibe genau 8 kurze, lustige, kreative Gedanken oder Sprueche aus Sicht von Huehnern im Huehnerstall auf Deutsch. Maximal 32 Zeichen pro Zeile! Nur ue, ae, oe, ss verwenden (keine Umlaute, keine Emojis, keine Nummerierung, nur die 8 Zeilen)."}]}]}' \
+            -o response.json
+
+          python3 - << 'EOF'
+          import json
+          with open("response.json", "r", encoding="utf-8") as f:
+              res = json.load(f)
+          if "candidates" not in res:
+              print("API Antwort:", res)
+              raise SystemExit(1)
+          cand = res.get("candidates").pop(0)
+          part = cand.get("content").get("parts").pop(0)
+          text = part.get("text").strip()
+          lines = [l.strip()[:34] for l in text.splitlines() if l.strip()]
+          with open("sprueche.txt", "w", encoding="utf-8") as f:
+              f.write("\n".join(lines[:8]) + "\n")
+          EOF
+
+          rm -f response.json
 
       - name: Save sprueche.txt to repo
         run: |
