@@ -24,7 +24,7 @@ jobs:
           from google import genai
 
           client = genai.Client(api_key=os.environ["GEMINI_API_KEY"].strip())
-          prompt = "Schreibe genau 8 kurze, lustige, kreative Gedanken oder Sprueche aus Sicht von Huehnern mit schwarzem Humor im Huehnerstall auf Deutsch. Manche davon gerne auf das aktuelle Wetter in Matzendorf bei Wiener neustadt bezogen. Manche auch auf die Hühnerhalter Birgit, David, Dominik und Tanja bezogen. Ausserdem deren Kinder Leo, Julian, Jakob, Luisa und Emilia können eingebunden werden. Maximal 60 Zeichen pro Zeile! Nur ue, ae, oe, ss verwenden (keine Umlaute, keine Emojis, keine Nummerierung, nur die 8 Zeilen)."
+          prompt = "Schreibe genau 8 kurze, lustige, kreative Gedanken oder Sprueche aus Sicht von Huehnern mit schwarzem Humor im Huehnerstall auf Deutsch. Manche davon gerne auf das aktuelle Wetter in Matzendorf bei Wiener neustadt bezogen (maximal 2 sprüche aufs wetter bezogen). Manche auch auf die Hühnerhalter Birgit, David, Dominik und Tanja und deren Kinder Julian, Jakob, Leo, Emilia und Luisa bezogen (maximal 2 sprüche mit den haltern/kindern). Maximal 60 Zeichen pro Zeile! Nur ue, ae, oe, ss verwenden (keine Umlaute, keine Emojis, keine Nummerierung, nur die 8 Zeilen)."
 
           # Alle verfügbaren Modelle für diesen Key automatisch ermitteln
           available = []
