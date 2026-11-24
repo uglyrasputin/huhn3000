@@ -22,14 +22,34 @@ jobs:
           import os, json, urllib.request
 
           host = "generativelanguage." + "googleapis.com"
-          path = "/v1beta/models/gemini-2.0-flash:generateContent"
-          url = "https://" + host + path
           key = os.environ["GEMINI_API_KEY"].strip()
 
+          # 1. Verfügbare Modelle für diesen Key abrufen
+          list_url = "https://" + host + "/v1beta/models"
+          req_list = urllib.request.Request(list_url)
+          req_list.add_header("x-goog-api-key", key)
+          with urllib.request.urlopen(req_list) as resp:
+              models_data = json.loads(resp.read().decode("utf-8"))
+
+          chosen_model = None
+          for m in models_data.get("models", []):
+              name = m.get("name", "")
+              methods = m.get("supportedGenerationMethods", [])
+              if "generateContent" in methods and "flash" in name.lower():
+                  chosen_model = name
+                  break
+
+          if not chosen_model:
+              raise RuntimeError("Kein passendes Modell gefunden: " + str(models_data))
+
+          print("Nutze Modell:", chosen_model)
+
+          # 2. Sprüche mit dem gefundenen Modell generieren
+          gen_url = "https://" + host + "/v1beta/" + chosen_model + ":generateContent"
           prompt = "Schreibe genau 8 kurze, lustige, kreative Gedanken oder Sprueche aus Sicht von Huehnern im Huehnerstall auf Deutsch. Maximal 32 Zeichen pro Zeile! Nur ue, ae, oe, ss verwenden (keine Umlaute, keine Emojis, keine Nummerierung, nur die 8 Zeilen)."
           payload = json.dumps({"contents": [{"parts": [{"text": prompt}]}]}).encode("utf-8")
 
-          req = urllib.request.Request(url, data=payload, method="POST")
+          req = urllib.request.Request(gen_url, data=payload, method="POST")
           req.add_header("Content-Type", "application/json")
           req.add_header("x-goog-api-key", key)
 
