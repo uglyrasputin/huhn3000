@@ -24,7 +24,7 @@ jobs:
           from google import genai
 
           client = genai.Client(api_key=os.environ["GEMINI_API_KEY"].strip())
-          prompt = "Schreibe genau 8 kurze, lustige, kreative Gedanken oder Sprueche aus Sicht von Huehnern im Huehnerstall auf Deutsch. Maximal 32 Zeichen pro Zeile! Nur ue, ae, oe, ss verwenden (keine Umlaute, keine Emojis, keine Nummerierung, nur die 8 Zeilen)."
+          prompt = "Schreibe genau 8 kurze, lustige, kreative Gedanken oder Sprueche aus Sicht von Huehnern mit schwarzem Humor im Huehnerstall auf Deutsch. Maximal 60 Zeichen pro Zeile! Nur ue, ae, oe, ss verwenden (keine Umlaute, keine Emojis, keine Nummerierung, nur die 8 Zeilen)."
 
           # Alle verfügbaren Modelle für diesen Key automatisch ermitteln
           available = []
