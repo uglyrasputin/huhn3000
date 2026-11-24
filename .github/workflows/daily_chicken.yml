@@ -1,0 +1,42 @@
+name: Daily Chicken Quotes
+
+on:
+  schedule:
+    - cron: '0 5 * * *' # Läuft jeden Morgen automatisch um 06:00 Uhr (MEZ)
+  workflow_dispatch:    # Erlaubt dir jederzeit einen manuellen Test-Start per Klick!
+
+permissions:
+  contents: write
+
+jobs:
+  generate-quotes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate fresh chicken quotes via Gemini
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          python3 -c '
+          import os, json, urllib.request
+          key = os.environ["GEMINI_API_KEY"]
+          url = f"https://googleapis.com{key}"
+          prompt = "Schreibe genau 8 kurze, lustige, kreative Gedanken oder Sprueche aus Sicht von Huehnern im Huehnerstall auf Deutsch. Maximal 32 Zeichen pro Zeile! Nur ue, ae, oe, ss verwenden (keine Umlaute, keine Emojis, keine Nummerierung, nur die 8 Zeilen)."
+          data = json.dumps({"contents": [{"parts": [{"text": prompt}]}]}).encode("utf-8")
+          req = urllib.request.Request(url, data=data, headers={"Content-Type": "application/json"})
+          with urllib.request.urlopen(req) as resp:
+              res = json.loads(resp.read().decode())
+              text = res["candidates"][0]["content"]["parts"][0]["text"].strip()
+              lines = [l.strip()[:34] for l in text.splitlines() if l.strip()]
+              with open("sprueche.txt", "w", encoding="utf-8") as f:
+                  f.write("\n".join(lines[:8]) + "\n")
+          '
+
+      - name: Save sprueche.txt to repo
+        run: |
+          git config user.name "HUHN-3000-Bot"
+          git config user.email "bot@huhn3000.local"
+          git add sprueche.txt
+          git commit -m "Update daily chicken quotes" || exit 0
+          git push
