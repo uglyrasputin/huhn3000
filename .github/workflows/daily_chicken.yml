@@ -24,18 +24,35 @@ jobs:
           from google import genai
 
           client = genai.Client(api_key=os.environ["GEMINI_API_KEY"].strip())
-          prompt = "Schreibe genau 8 kurze, lustige, kreative Gedanken oder Sprueche aus Sicht von Huehnern mit schwarzem Humor im Huehnerstall auf Deutsch. Maximal 32 Zeichen pro Zeile! Nur ue, ae, oe, ss verwenden (keine Umlaute, keine Emojis, keine Nummerierung, nur die 8 Zeilen)."
+          prompt = "Schreibe genau 8 kurze, lustige, kreative Gedanken oder Sprueche aus Sicht von Huehnern im Huehnerstall auf Deutsch. Maximal 32 Zeichen pro Zeile! Nur ue, ae, oe, ss verwenden (keine Umlaute, keine Emojis, keine Nummerierung, nur die 8 Zeilen)."
+
+          # Alle verfügbaren Modelle für diesen Key automatisch ermitteln
+          available = []
+          try:
+              for m in client.models.list():
+                  name = getattr(m, "name", "")
+                  if "flash" in name.lower() or "gemma" in name.lower():
+                      available.append(name.replace("models/", ""))
+          except Exception as e:
+              print("Konnte Modellliste nicht laden:", e)
+
+          if "gemini-3.8-flash" not in available:
+              available.insert(0, "gemini-3.8-flash")
+
+          print("Gefundene Modelle:", available)
 
           lines = []
-          for model_name in ["gemini-3.8-flash", "gemini-3.8-flash-lite"]:
+          for model_name in available:
               try:
+                  print("Versuche:", model_name)
                   response = client.models.generate_content(model=model_name, contents=prompt)
                   lines = [l.strip()[:34] for l in response.text.splitlines() if l.strip()]
                   if len(lines) >= 4:
+                      print("Erfolg mit:", model_name)
                       break
               except Exception as e:
                   print(f"Warnung bei {model_name}: {e}")
-                  time.sleep(3)
+                  time.sleep(2)
 
           if len(lines) < 4:
               lines = [
