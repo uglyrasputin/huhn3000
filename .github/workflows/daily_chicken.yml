@@ -76,4 +76,6 @@ jobs:
           git config user.email "bot@huhn3000.local"
           git add sprueche.txt
           git commit -m "Update daily chicken quotes" || exit 0
+          git pull --rebase origin main
           git push
+
