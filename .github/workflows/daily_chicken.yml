@@ -24,8 +24,12 @@ jobs:
           from google import genai
 
           client = genai.Client(api_key=os.environ["GEMINI_API_KEY"].strip())
-          prompt = "Schreibe genau 8 kurze, lustige, kreative Gedanken oder Sprueche aus Sicht von Huehnern im Huehnerstall auf Deutsch. Maximal 32 Zeichen pro Zeile! Nur ue, ae, oe, ss verwenden (keine Umlaute, keine Emojis, keine Nummerierung, nur die 8 Zeilen)."
-          response = client.models.generate_content(model="gemini-3.8-flash", contents=prompt)
+          prompt = "Schreibe genau 8 kurze, lustige, kreative Gedanken oder Sprueche aus Sicht von Huehnern mit schwarzem Humor im Huehnerstall auf Deutsch. Maximal 32 Zeichen pro Zeile! Nur ue, ae, oe, ss verwenden (keine Umlaute, keine Emojis, keine Nummerierung, nur die 8 Zeilen)."
+           try:
+              response = client.models.generate_content(model="gemini-3.8-flash", contents=prompt)
+          except Exception:
+              response = client.models.generate_content(model="gemini-3.8-flash-lite", contents=prompt)
+
 
           lines = [l.strip()[:34] for l in response.text.splitlines() if l.strip()]
           with open("sprueche.txt", "w", encoding="utf-8") as f:
