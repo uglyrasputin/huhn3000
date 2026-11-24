@@ -2,8 +2,8 @@ name: Daily Chicken Quotes
 
 on:
   schedule:
-    - cron: '0 5 * * *' # Läuft jeden Morgen automatisch um 06:00 Uhr (MEZ)
-  workflow_dispatch:    # Erlaubt dir jederzeit einen manuellen Test-Start per Klick!
+    - cron: '0 5 * * *'
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -27,7 +27,9 @@ jobs:
           req = urllib.request.Request(url, data=data, headers={"Content-Type": "application/json"})
           with urllib.request.urlopen(req) as resp:
               res = json.loads(resp.read().decode())
-              text = res["candidates"][0]["content"]["parts"][0]["text"].strip()
+              cand = res.get("candidates").pop(0)
+              part = cand.get("content").get("parts").pop(0)
+              text = part.get("text").strip()
               lines = [l.strip()[:34] for l in text.splitlines() if l.strip()]
               with open("sprueche.txt", "w", encoding="utf-8") as f:
                   f.write("\n".join(lines[:8]) + "\n")
